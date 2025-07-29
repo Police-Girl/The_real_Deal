@@ -9,43 +9,32 @@ function Login() {
   const { instance, accounts } = useMsal();
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
-  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // If user is already logged in, go to /home.
   useEffect(() => {
     if (accounts.length > 0) {
       navigate("/home");
     }
   }, [accounts, navigate]);
 
-
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
     setLoading(true);
 
-    // Send to backend for validation
     try {
       const response = await fetch(
         `${process.env.REACT_APP_API_BASE_URL}?entity=users&action=validate`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email, username }),
         }
       );
-      if (!response.ok) {
-        setError("Invalid credentials. Please try again.");
-        setLoading(false);
-        return;
-      }
       const data = await response.json();
-      // Assume backend returns { valid: true, user: { ... } }
+
       if (data.valid) {
-        // Store user info in sessionStorage (or context, as needed)
         sessionStorage.setItem("account", JSON.stringify({ username: email }));
         navigate("/home");
       } else {
@@ -59,23 +48,15 @@ function Login() {
 
   return (
     <div style={styles.container}>
-      <div style={styles.wrapper}>
-        <div style={styles.title}>
+      <div style={styles.backdrop} />
+      <div style={styles.overlay}>
+        <div style={styles.headerRow}>
+          <img src="/mioglogo.png" alt="Logo" style={styles.logo} />
           <span style={styles.titleText}>Welcome</span>
         </div>
         <p style={styles.subtitle}>Please sign in.</p>
-        {/* <div className="d-grid gap-3" style={styles.buttonContainer}>
-          <Button
-            variant="primary"
-            size="lg"
-            style={styles.button}
-            onClick={handleLogin}
-          >
-            <BsMicrosoft style={styles.icon} />
-            Sign in with Microsoft
-          </Button>
-        </div> */}
-        <Form onSubmit={handleSubmit}>
+
+        <Form onSubmit={handleSubmit} style={{ width: '100%' }}>
           <Form.Group className="mb-3" controlId="formEmail">
             <Form.Label>Email address</Form.Label>
             <Form.Control
@@ -86,21 +67,22 @@ function Login() {
               onChange={e => setEmail(e.target.value)}
             />
           </Form.Group>
+
           <Form.Group className="mb-3" controlId="formUsername">
-            <Form.Label>Username</Form.Label>
+            <Form.Label>Password</Form.Label>
             <Form.Control
               type="text"
-              placeholder="Enter username"
-              value={username}
+              placeholder="Enter password"
+              value={password}
               required
-              onChange={e => setUsername(e.target.value)}
+              onChange={e => setPassword(e.target.value)}
             />
-            <Form.Text className="text-muted">
-              (Usually the same as your email)
-            </Form.Text>
+  
           </Form.Group>
-          {error && <div style={{ color: "red", marginBottom: 10 }}>{error}</div>}
-          <div className="d-grid gap-3" style={styles.buttonContainer}>
+
+          {error && <div style={styles.errorMessage}>{error}</div>}
+
+          <div className="d-grid gap-2 mt-3">
             <Button
               variant="primary"
               size="lg"
@@ -119,47 +101,80 @@ function Login() {
 
 const styles = {
   container: {
-    display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'center',
+    position: 'relative',
     height: '100vh',
-    backgroundColor: '#f4f4f4',
+    backgroundImage: `url('/login.png')`,
+    backgroundSize: 'cover',
+    backgroundPosition: 'center',
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  wrapper: {
-    textAlign: 'center',
-    padding: '40px',
-    width: '100%',
-    maxWidth: '400px',
-    backgroundColor: '#fff',
-    borderRadius: '8px',
-    boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
+
+  backdrop: {
+    position: 'absolute',
+    top: 0, left: 0, right: 0, bottom: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.3)',
+    backdropFilter: 'blur(10px)',
+    zIndex: 0,
   },
-  title: {
-    marginBottom: '20px',
+
+  overlay: {
+    position: 'relative',
+    zIndex: 1,
+    backgroundColor: 'rgba(255, 255, 255, 0.65)',
+    padding: '2rem',
+    borderRadius: '16px',
+    boxShadow: '0 6px 20px rgba(0,0,0,0.2)',
+    width: '360px',
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
   },
-  titleText: {
-    fontSize: '30px',
-    fontWeight: 'bold',
-    color: '#333',
-  },
-  subtitle: {
-    fontSize: '18px',
-    color: '#555',
-    marginBottom: '20px',
-  },
-  buttonContainer: {
-    marginTop: '20px',
-  },
-  button: {
-    fontSize: '16px',
-    padding: '10px 50px',
+
+  headerRow: {
     display: 'flex',
     alignItems: 'center',
-    justifyContent: 'center',
+    marginBottom: '1rem',
   },
-  icon: {
+
+  logo: {
+    height: '36px',
+    width: '36px', 
     marginRight: '10px',
+    borderRadius: '50%',
+    objectFit: 'cover', 
+  },
+
+  titleText: {
+    fontSize: '24px',
+    fontWeight: '600',
+    color: '#222',
+  },
+
+  subtitle: {
+    fontSize: '16px',
+    color: '#444',
+    marginBottom: '1.5rem',
+    textAlign: 'center',
+  },
+
+  button: {
+    backgroundColor: '#3b5675',
+    color: '#fff',
+    border: 'none',
+    borderRadius: '6px',
+    padding: '10px',
+    fontSize: '15px',
+  },
+
+  errorMessage: {
+    color: '#b00020',
+    fontSize: '14px',
+    marginTop: '10px',
+    textAlign: 'center',
   },
 };
 
-export default Login
+export default Login;
+
